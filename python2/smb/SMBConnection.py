@@ -444,6 +444,8 @@ class SMBConnection(SMB):
                     raise SMBTimeout
 
                 d = self.sock.recv(read_len)
+                if not d:
+                    raise NotConnectedError('Server hung up the connection')
                 data = data + d
                 read_len -= len(d)
             except select.error, ex:
@@ -465,6 +467,8 @@ class SMBConnection(SMB):
                     raise SMBTimeout
 
                 d = self.sock.recv(read_len)
+                if not d:
+                    raise NotConnectedError('Server hung up the connection')
                 data = data + d
                 read_len -= len(d)
             except select.error, ex:
