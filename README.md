@@ -1,7 +1,7 @@
 pysmb-fork
 ==========
 
-Fork of pysmb 1.1.2
+Fork of pysmb 1.1.3
 The purpose of this fork is to track any attempts at bug fixes while using the library.
 
 The original project can be found at http://miketeo.net/wp/index.php/projects/pysmb
