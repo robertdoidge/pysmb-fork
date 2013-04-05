@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>nmb.NetBIOSProtocol &mdash; pysmb 1.0.0 documentation</title>
+    <title>nmb.NetBIOSProtocol &mdash; pysmb 1.1.1 documentation</title>
     
     <link rel="stylesheet" href="../../_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
@@ -16,7 +16,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '1.0.0',
+        VERSION:     '1.1.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <link rel="top" title="pysmb 1.0.0 documentation" href="../../index.html" />
+    <link rel="top" title="pysmb 1.1.1 documentation" href="../../index.html" />
     <link rel="up" title="Module code" href="../index.html" /> 
   </head>
   <body>
@@ -35,7 +35,7 @@
         <li class="right" style="margin-right: 10px">
           <a href="../../genindex.html" title="General Index"
              accesskey="I">index</a></li>
-        <li><a href="../../index.html">pysmb 1.0.0 documentation</a> &raquo;</li>
+        <li><a href="../../index.html">pysmb 1.1.1 documentation</a> &raquo;</li>
           <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
       </ul>
     </div>
@@ -133,6 +133,33 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">pending_trns</span><span class="p">[</span><span class="n">trn_id</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="o">+</span><span class="n">timeout</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">d</span> <span class="p">)</span>
         <span class="k">return</span> <span class="n">d</span>
 
+    <span class="k">def</span> <span class="nf">queryIPForName</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ip</span><span class="p">,</span> <span class="n">port</span> <span class="o">=</span> <span class="mi">137</span><span class="p">,</span> <span class="n">timeout</span> <span class="o">=</span> <span class="mi">30</span><span class="p">):</span></div>
+<div class="viewcode-block" id="NBNSProtocol.queryIPForName"><a class="viewcode-back" href="../../api/nmb_NBNSProtocol.html#nmb.NetBIOSProtocol.NBNSProtocol.queryIPForName">[docs]</a>        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Send a query to the machine with *ip* and hopes that the machine will reply back with its name.</span>
+
+<span class="sd">        The implementation of this function is contributed by Jason Anderson.</span>
+
+<span class="sd">        :param string ip: If the NBNSProtocol instance was instianted with broadcast=True, then this parameter can be an empty string. We will leave it to the OS to determine an appropriate broadcast address.</span>
+<span class="sd">                          If the NBNSProtocol instance was instianted with broadcast=False, then you should provide a target IP to send the query.</span>
+<span class="sd">        :param integer port: The NetBIOS-NS port (IANA standard defines this port to be 137). You should not touch this parameter unless you know what you are doing.</span>
+<span class="sd">        :param integer/float timeout: Number of seconds to wait for a reply, after which the method will return None</span>
+<span class="sd">        :return: A *twisted.internet.defer.Deferred* instance. The callback function will be called with a list of names of the machine at *ip*.</span>
+<span class="sd">                 On timeout, the errback function will be called with a Failure instance wrapping around a NetBIOSTimeout exception</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">trn_id</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mh">0xFFFF</span><span class="p">)</span>
+        <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">pending_trns</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span><span class="n">trn_id</span><span class="p">):</span>
+                <span class="k">break</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">trn_id</span> <span class="o">=</span> <span class="p">(</span><span class="n">trn_id</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">&amp;</span> <span class="mh">0xFFFF</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prepareNetNameQuery</span><span class="p">(</span><span class="n">trn_id</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">ip</span><span class="p">,</span> <span class="n">port</span><span class="p">)</span>
+
+        <span class="n">d</span> <span class="o">=</span> <span class="n">defer</span><span class="o">.</span><span class="n">Deferred</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pending_trns</span><span class="p">[</span><span class="n">trn_id</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="o">+</span><span class="n">timeout</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">d</span> <span class="p">)</span>
+        <span class="k">return</span> <span class="n">d</span>
+
     <span class="k">def</span> <span class="nf">stopProtocol</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></div>
         <span class="n">DatagramProtocol</span><span class="o">.</span><span class="n">stopProtocol</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
@@ -160,12 +187,12 @@
         <li class="right" style="margin-right: 10px">
           <a href="../../genindex.html" title="General Index"
              >index</a></li>
-        <li><a href="../../index.html">pysmb 1.0.0 documentation</a> &raquo;</li>
+        <li><a href="../../index.html">pysmb 1.1.1 documentation</a> &raquo;</li>
           <li><a href="../index.html" >Module code</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2011, Michael Teo.
+        &copy; Copyright 2001-2012, Michael Teo http://miketeo.net/.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
     </div>
   </body>
